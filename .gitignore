@@ -1,0 +1,99 @@
+# ================================
+# GLOBAL IGNORE (COMMON)
+# ================================
+.DS_Store
+Thumbs.db
+*.log
+logs/
+*.temp
+*.tmp
+*.swp
+*.swo
+
+# Environment & Secrets
+.env
+.env.* 
+*.key
+*.pem
+
+# ================================
+# NODE / REACT (frontend)
+# ================================
+# Node modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.cache/
+.next/
+out/
+
+# React specific
+*.map
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ================================
+# PYTHON (backend, python, training)
+# ================================
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+
+# Python build
+build/
+dist/
+*.egg-info/
+
+# Jupyter & ML
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+.mlruns/
+runs/
+artifacts/
+checkpoints/
+models/
+weights/
+
+# Training datasets (customize as needed)
+data/
+datasets/
+*.csv
+*.npz
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# ================================
+# MONGO / DATABASE
+# ================================
+dump/
+*.bson
+*.lock
+
+# ================================
+# EDITOR / OS
+# ================================
+.vscode/
+.idea/
+*.iml
+
+# ================================
+# OTHER JUNK
+# ================================
+uploads/
+temp/
+tmp/
+cache/
+*.bak
