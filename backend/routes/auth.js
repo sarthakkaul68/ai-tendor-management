@@ -13,6 +13,9 @@ router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
 
+      //  const check = await User.findOne({});
+      //  cosole.log('check')
+
     const user = await User.findOne({
       $or: [{ email: username }, { name: username }],
     });

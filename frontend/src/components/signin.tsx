@@ -60,8 +60,7 @@ const Signin = () => {
       // await new Promise((resolve) => setTimeout(resolve, 1500));
       // console.log("Sign In with:", { username, password });
       const apiUrl = import.meta.env.VITE_API_URL;
-
-
+            
       //  const response = await axios.post("http://localhost:5000/api/auth/login", {
        const response = await axios.post(`${apiUrl}/api/auth/login`, {
       username,
@@ -80,7 +79,7 @@ const Signin = () => {
       const num2 = Math.floor(Math.random() * 10) + 1;
       setCaptchaQuestion({ num1, num2 });
       setCaptchaAnswer("");
-
+      
       navigate("/dashboard");
       }
       else {
@@ -141,7 +140,7 @@ const Signin = () => {
                 </div>
               </div> */}
               <div>
-                <img className="  drop-shadow-[0_1px_2px_rgba(247,237,237)]" src={logo} alt="Reidan logo" />
+                {/* <img className="  drop-shadow-[0_1px_2px_rgba(247,237,237)]" src={logo} alt="Reidan logo" /> */}
                 {/* <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Redian AI</h1>
                 <p className="text-lg text-gray-300 mt-1 flex items-center gap-2"><Sparkles className="w-4 h-4 text-yellow-400" />Neural Document Intelligence</p> */}
               </div>

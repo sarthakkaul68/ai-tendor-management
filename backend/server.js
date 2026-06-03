@@ -52,6 +52,10 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } 
 });
 
+
+const dns = require("dns");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true, useUnifiedTopology: true
 })

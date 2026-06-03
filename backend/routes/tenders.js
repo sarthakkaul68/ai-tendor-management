@@ -4,8 +4,19 @@ const mongoose = require('mongoose');
 const Tender = require('../models/Tender');
 const User = require('../models/User');
 const auth = require("../middleware/authMiddleware");
+const { OpenRouter } = require("@openrouter/sdk");
+
+const axios = require("axios");
+
 
 const multer = require('multer');
+
+const memoryStorage = multer.memoryStorage();
+const uploadMemory = multer({ storage: multer.memoryStorage() });
+const pdfParse = require("pdf-parse");
+
+
+
 const path = require('path');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, path.join(__dirname, '..', 'tender-uploads')),
@@ -13,7 +24,9 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 40 * 1024 * 1024 } });
 
-
+const openrouter = new OpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY
+});
 
 async function generateTenderId() {
   let isUnique = false;
@@ -24,9 +37,8 @@ async function generateTenderId() {
     const padded = randomNum.toString().padStart(5, '0');
     tenderId = 'TE' + padded;
 
-       const exists = await Tender.findOne({ tenderId });
-    if (!exists) 
-      {isUnique = true};
+    const exists = await Tender.findOne({ tenderId });
+    if (!exists) { isUnique = true };
   }
   return tenderId;
 }
@@ -44,7 +56,7 @@ router.post('/create', auth, upload.single('document'), async (req, res) => {
     } = req.body;
 
     const createdAt = new Date();
-    const deadlineForAssignment = new Date(createdAt.getTime() + 5*24*60*60*1000);
+    const deadlineForAssignment = new Date(createdAt.getTime() + 5 * 24 * 60 * 60 * 1000);
 
     let assignedTo = null;
     let assignmentStatus = 'pending';
@@ -54,17 +66,17 @@ router.post('/create', auth, upload.single('document'), async (req, res) => {
       if (mongoose.Types.ObjectId.isValid(assignedToRaw)) {
         candidate = await User.findById(assignedToRaw);
       }
-     
+
       if (candidate) {
         if (candidate.available) {
           assignedTo = candidate._id;
           assignmentStatus = 'assigned';
-           candidate.available = false;
-            await candidate.save();
+          candidate.available = false;
+          await candidate.save();
         }
       }
-    } 
-  
+    }
+
 
     let document = null;
     if (req.file) {
@@ -77,12 +89,12 @@ router.post('/create', auth, upload.single('document'), async (req, res) => {
       };
     }
 
-     const tenderId = await generateTenderId();
-     const userId = req.user._id; 
-     console.log(userId)
+    const tenderId = await generateTenderId();
+    const userId = req.user._id;
+    console.log(userId)
 
     const tender = new Tender({
-      tenderId,    
+      tenderId,
       name,
       version,
       clientName,
@@ -104,7 +116,7 @@ router.post('/create', auth, upload.single('document'), async (req, res) => {
     });
 
     await tender.save();
-     return res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: 'Tender created successfully!',
       tenderId: tender._id
@@ -126,7 +138,7 @@ router.post('/create', auth, upload.single('document'), async (req, res) => {
 router.get('/listing', async (req, res) => {
   try {
     const projects = await Tender.find().populate('creator', 'name email')
-    .populate('assignedTo', 'name email') .sort({ createdAt: -1 }); ; 
+      .populate('assignedTo', 'name email').sort({ createdAt: -1 });;
     res.status(200).json(projects);
   } catch (error) {
     console.error(error);
@@ -150,5 +162,75 @@ router.get('/:id/document', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch document', error: err.message });
   }
 });
+
+
+
+router.post("/analyze", uploadMemory.single("file"), async (req, res) => {
+  try {
+    console.log("pdfParse module:", pdfParse);
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    let tenderText = "";
+
+    if (req.file.mimetype === "application/pdf") {
+
+      const data = await pdfParse(req.file.buffer);
+      tenderText = data.text;
+    } else {
+      tenderText = req.file.buffer.toString("utf-8");
+    }
+
+    const trimmedText = tenderText.slice(0, 12000);
+
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: "openai/gpt-4o-mini", // 
+        messages: [
+          {
+            role: "user",
+            content: `Return ONLY valid JSON. No explanation.
+
+{
+  "objective": "",
+  "requirement": "",
+  "goal": "",
+  "scope": "",
+  "brief description": "",
+  "closing date": "",
+  "agreement": "",
+  "estimation cost": "",
+  "BOQ": "",
+  "bid submission date": ""
+}
+
+Document:
+${trimmedText}`
+          }
+        ]
+      },
+      {
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+    const aiResult = response.data.choices[0].message.content;
+
+    res.json({ success: true, data: aiResult });
+
+  } catch (error) {
+    console.error("Tender Analysis Error:", error);
+    res.status(500).json({ message: "Error analyzing tender" });
+  }
+}
+
+);
+
+
 
 module.exports = router;

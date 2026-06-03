@@ -476,7 +476,8 @@ export default function ReportView() {
                           {formatKey(key)}
                         </h3>
                         <p className="text-slate-700 text-sm leading-relaxed">
-                          {String(report.analysis[key] ?? "Not specified")}
+                          {/* {String(report.analysis[key] ?? "Not specified")} */}
+                          {String(report?.analysis?.[key] ?? "Not specified")}
                         </p>
                       </div>
                     </div>
@@ -498,7 +499,8 @@ export default function ReportView() {
                           {formatKey(key)}
                         </h3>
                         <div className="text-slate-700 leading-relaxed bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                          {String(report.analysis[key] ?? "Not specified")}
+                          {/* {String(report.analysis[key] ?? "Not specified")} */}
+                          {String(report?.analysis?.[key] ?? "Not specified")}
                         </div>
                       </div>
                     </div>

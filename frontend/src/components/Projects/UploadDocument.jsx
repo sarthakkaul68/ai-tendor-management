@@ -114,34 +114,44 @@ const UploadDocument = () => {
     setStatus("Processing...");
 
     try {
-      const pdfFile = await convertToPdf(file);
+      // const pdfFile = await convertToPdf(file);
 
       setStatus("Uploading File...");
       const formData = new FormData();
-      formData.append("file", pdfFile);
+      formData.append("file", file);
+       
+      const apiUrl = import.meta.env.VITE_API_URL;
+      const res = await axios.post(`${apiUrl}/api/tenders/analyze`, formData, {
+  headers: { "Content-Type": "multipart/form-data" }
+});
 
-      const uploadRes = await axios.post(UPLOAD_URL, formData, { headers: { "Content-Type": "multipart/form-data" } });
-      const fileUri = uploadRes.data.file.uri;
+let rawText = res.data.data;
 
-      setStatus("Analyzing With AI...");
-      const prompt =
-        "Analyse the given file and create a JSON object containing: 'objective', 'requirement', 'goal', 'scope', 'brief description', 'closing date', 'agreement', 'estimation cost', 'BOQ', and 'bid submission date'. If not found, return 'Not specified'.";
+      // const uploadRes = await axios.post(UPLOAD_URL, formData, { headers: { "Content-Type": "multipart/form-data" } });
+      // const fileUri = uploadRes.data.file.uri;
 
-      const body = {
-        contents: [
-          { parts: [{ text: prompt }, { fileData: { fileUri, mimeType: "application/pdf" } }] },
-        ],
-      };
+      // setStatus("Analyzing With AI...");
+      // const prompt =
+      //   "Analyse the given file and create a JSON object containing: 'objective', 'requirement', 'goal', 'scope', 'brief description', 'closing date', 'agreement', 'estimation cost', 'BOQ', and 'bid submission date'. If not found, return 'Not specified'.";
 
-      const genRes = await axios.post(GENERATE_URL, body, { headers: { "Content-Type": "application/json" } });
-      let rawText = genRes.data.candidates[0].content.parts[0].text;
+      // const body = {
+      //   contents: [
+      //     { parts: [{ text: prompt }, { fileData: { fileUri, mimeType: "application/pdf" } }] },
+      //   ],
+      // };
+
+      // const genRes = await axios.post(GENERATE_URL, body, { headers: { "Content-Type": "application/json" } });
+      // let rawText = genRes.data.candidates[0].content.parts[0].text;
+
+
+
       let cleaned = rawText.replace(/```json|```/g, "").trim();
       let parsed;
       try { parsed = JSON.parse(cleaned); } catch { parsed = { raw: rawText }; }
       const fileUrl = URL.createObjectURL(file);
 
       const newAnalysis = {
-        id: fileUri,
+        id: Date.now() ,    //fileUri,
         filename: file.name,
         analysis: parsed,
         uploadedAt: new Date().toISOString(),
@@ -162,6 +172,10 @@ const UploadDocument = () => {
       setLoading(false);
     }
   }
+
+
+
+  
 
   function viewReportById(item) {
     navigate(`/report/${encodeURIComponent(item.id)}`, { state: item });
