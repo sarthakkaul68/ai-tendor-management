@@ -187,7 +187,7 @@ router.post("/analyze", uploadMemory.single("file"), async (req, res) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "openai/gpt-4o-mini", // 
+        model: "openai/gpt-4o-mini",
         messages: [
           {
             role: "user",
